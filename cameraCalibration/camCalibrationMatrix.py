@@ -124,33 +124,84 @@ images_iPhone =  glob.glob('C:\\Users\\Fulvio Bertolini\\VGIS8\\cameraCalibratio
 
 #(mtx, dist, rvecs, tvecs) = getCameraIntrinsic(images)
 
-(mtxiPhone, distiPhone, _, _) = getCameraIntrinsic(images_iPhone)
-rvecs, tvecs = getCameraExtrinsic(imagesARKit, mtxiPhone, distiPhone)
+#(mtxiPhone, distiPhone, _, _) = getCameraIntrinsic(images_iPhone)
+#rvecs, tvecs = getCameraExtrinsic(imagesARKit, mtxiPhone, distiPhone)
 # used to get extrinsic ZED
-images = ["./UNO/samples/RGB_0.png",
-             "./DUE/samples/RGB_0.png",
-             "./TRE/samples/RGB_0.png",
-             "./QUATTRO/samples/RGB_0.png"]
+#images_ZED = ["./UNO/samples/RGB_0.png",
+#             "./DUE/samples/RGB_0.png",
+#             "./TRE/samples/RGB_0.png",
+#             "./QUATTRO/samples/RGB_0.png"]
 
 # zed intrinsic parameters
-cameraMatrixZED = np.zeros((3,3), np.float64)
-cameraMatrixZED[0,0] = 660.445
-cameraMatrixZED[0,2] = 650.905
-cameraMatrixZED[1,1] = 660.579
-cameraMatrixZED[1,2] = 327.352
-cameraMatrixZED[2,2] = 1
+cameraMatrix_ZED = np.zeros((3,3), np.float64)
+cameraMatrix_ZED[0,0] = 660.445
+cameraMatrix_ZED[0,2] = 650.905
+cameraMatrix_ZED[1,1] = 660.579
+cameraMatrix_ZED[1,2] = 327.352
+cameraMatrix_ZED[2,2] = 1
 
-distCoeffZED = np.zeros((1,5), np.float64)
-distCoeffZED[0,0] = -0.00174692
-distCoeffZED[0,1] = -0.0174969	
-distCoeffZED[0,2] = -0.000182398
-distCoeffZED[0,3] = -0.00751098
-distCoeffZED[0,4] =	0.0219687
+distCoeff_ZED = np.zeros((1,5), np.float64)
+distCoeff_ZED[0,0] = -0.00174692
+distCoeff_ZED[0,1] = -0.0174969	
+distCoeff_ZED[0,2] = -0.000182398
+distCoeff_ZED[0,3] = -0.00751098
+distCoeff_ZED[0,4] =	0.0219687
+
+cameraMatrix_iPhone = np.zeros((3,3), np.float64)
+cameraMatrix_iPhone[0,0] = 3513.23
+cameraMatrix_iPhone[0,2] = 1542.31
+cameraMatrix_iPhone[1,1] = 3519.98
+cameraMatrix_iPhone[1,2] = 2089.89
+cameraMatrix_iPhone[2,2] = 1
+
+distCoeff_iPhone = np.zeros((1,5), np.float64)
+distCoeff_iPhone[0,0] = 0.293461	
+distCoeff_iPhone[0,1] = 	-1.3054	
+distCoeff_iPhone[0,2] = 0.0132138	
+distCoeff_iPhone[0,3] = 0.00104743
+distCoeff_iPhone[0,4] =		2.50754
+
+
+images_ZED = ["./test1/ZED/RGB_0.png"]
+images_iPhone = ["./test1/iOS/IMG_2012.jpg"]
+images_iPhone =  glob.glob('C:\\Users\\Fulvio Bertolini\\VGIS8\\cameraCalibration\\basicRotations\\IMG_*.jpg')
+
+rvecs_ZED, tvecs_ZED = getCameraExtrinsic(images_ZED, cameraMatrix_ZED, distCoeff_ZED)
+rvecs_iPhone, tvecs_iPhone = getCameraExtrinsic(images_iPhone, cameraMatrix_iPhone, distCoeff_iPhone)
+
+
+rotMat_iPhone_2_CheckerBoard = cv2.Rodrigues(rvecs_iPhone[0])[0]
+rotMat_ZED_2_CheckerBoard = cv2.Rodrigues(rvecs_ZED[0])[0]
+rotMat_CheckerBorard_2_ZED = np.transpose(rotMat_ZED_2_CheckerBoard)
+
+rotMat_iPhone_2_ZED = np.matmul(rotMat_iPhone_2_CheckerBoard, rotMat_CheckerBorard_2_ZED)
+
+
+transVec_iPhone_2_CheckerBoard = tvecs_iPhone[0]
+transVec_ZED_2_CheckerBoard = tvecs_ZED[0]
+transVec_CheckerBorard_2_ZED = np.multiply(transVec_ZED_2_CheckerBoard, -1)
+
+transVec_iPhone_2_ZED = np.add(transVec_iPhone_2_CheckerBoard, transVec_CheckerBorard_2_ZED)
 
 
 
 
-rvecs, tvecs = getCameraExtrinsic(images, cameraMatrix, distCoeff)
 
+transfMat_iPhone_2_ZED = np.zeros((4,4), np.float)
+
+transfMat_iPhone_2_ZED[0:3, 0:3] = rotMat_iPhone_2_ZED
+transfMat_iPhone_2_ZED[0,3] = transVec_iPhone_2_ZED[0]
+transfMat_iPhone_2_ZED[1,3] = transVec_iPhone_2_ZED[1] 
+transfMat_iPhone_2_ZED[2,3] = transVec_iPhone_2_ZED[2]
+transfMat_iPhone_2_ZED[3,3] = 1
+
+rotMat_iPhone_2_ZED_transposed = np.transpose(rotMat_iPhone_2_ZED)
+  
+eulerAngles_transposed = cv2.Rodrigues(rotMat_iPhone_2_ZED_transposed)[0]  
+eulerAngles = cv2.Rodrigues(rotMat_iPhone_2_ZED)[0]
+
+eulerAngles = np.multiply(eulerAngles, 180/np.pi)
+eulerAngles_transposed = np.multiply(eulerAngles_transposed, 180/np.pi)
+print ("euler angles:\n", eulerAngles, "\n\neuler angles transposed:\n", eulerAngles_transposed)
 
 print("ah scemooooo")
