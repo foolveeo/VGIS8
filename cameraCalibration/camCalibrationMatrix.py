@@ -23,16 +23,34 @@ def computeARKit_2_ZED_matrix(rvec_iPhone, tvec_iPhone, rvec_ZED, tvec_ZED):
     tvec_ZED[1] = tvec_ZED[1] * -1
 
     rotM_iPhone = cv2.Rodrigues(rvec_iPhone)[0]
-    rotM_ZED = cv2.Rodrigues(np.multiply(rvec_iPhone,-1))[0]
+    rotM_iPhone = np.transpose(rotM_iPhone)
+    rotM_ZED = cv2.Rodrigues(rvec_ZED)[0]
     
-    rotM = np.matmul(rotM_iPhone, rotM_ZED)
+    matrix_iPhone = np.zeros((4,4), np.float)
+    matrix_ZED = np.zeros((4,4), np.float)
     
-    rvec = cv2.Rodrigues(rotM)[0]
+    matrix_iPhone[0:3, 0:3] = rotM_iPhone
+    matrix_iPhone[0,3] = tvec_iPhone[0]
+    matrix_iPhone[1,3] = tvec_iPhone[1] 
+    matrix_iPhone[2,3] = tvec_iPhone[2]
+    matrix_iPhone[3,3] = 1
+    
+    matrix_ZED[0:3, 0:3] = rotM_ZED
+    matrix_ZED[0,3] = tvec_ZED[0]
+    matrix_ZED[1,3] = tvec_ZED[1] 
+    matrix_ZED[2,3] = tvec_ZED[2]
+    matrix_ZED[3,3] = 1
+    
+    
+    matrix = np.matmul(matrix_iPhone, matrix_ZED)
+    
+    rotM = matrix[0:3, 0:3]
+    rvec2 = cv2.Rodrigues(rotM)[0]
     rvec = np.subtract(rvec_iPhone, rvec_ZED)
     
     
     tvec = np.subtract(tvec_iPhone, tvec_ZED)
-    
+    tvec2 = matrix[0:3,3]
     return (rvec, tvec)
     
     
@@ -196,7 +214,7 @@ images_iPhone =  glob.glob('C:\\Users\\Fulvio Bertolini\\VGIS8\\cameraCalibratio
 images_iPhone =  [ "./basicRotations/IMG_2014.jpg", "./basicRotations/IMG_2015.jpg", "./basicRotations/IMG_2016.jpg", "./basicRotations/IMG_2017.jpg"]
 images_iPhone = ["./test_iPhone_offset_x_45_degrees/IMG_2024.JPG"]
 
-rvecs_ZED, tvecs_ZED = getCameraExtrinsic(images_ZED, cameraMatrix_ZED, distCoeff_ZED)
+rvecs_ZED, tvecs_ZED = getCameraExtrinsic(images_ZED, cameraMatrix_iPhone, distCoeff_iPhone)
 rvecs_iPhone, tvecs_iPhone = getCameraExtrinsic(images_iPhone, cameraMatrix_iPhone, distCoeff_iPhone)
 
 #
