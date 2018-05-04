@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu May  3 19:15:41 2018
+
+@author: Fulvio Bertolini
+"""
+
 import socket
 
-def sendTo(ip, port, data):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((ip, port))
-    s.send(data)
    
 def Main(ip, port):
     
@@ -18,18 +21,23 @@ def Main(ip, port):
         if not receivedData:
             break
         receivedDataStr = receivedData.decode('utf-8')
-        
-        
-        
-        fileTxt = open("./matrix.txt", "a+")
-        fileTxt.write(receivedDataStr)
-        fileTxt.close()
         if(receivedDataStr == "stop"):
             print("stopping...")
             break
+        
         print("from connected user:\n" + receivedDataStr)
-        sendData = "TUA mamma".encode('utf-8')
-        c.send(sendData)
+        
+        fileMatix =  open("./matrix.txt", "r")
+        linesMatrix = fileMatix.readlines()
+        fileMatix.close()
+        fileEulerAngles =  open("./eulerAngles.txt", "r")
+        linesEuleAngles = fileEulerAngles.readlines()
+        fileEulerAngles.close()
+        
+        sendDataMatrix = linesMatrix[-1]
+        sendDataEuler = linesEuleAngles[-1]
+        sendDataEncoded = (sendDataEuler + "\n" + sendDataMatrix).encode('utf-8')
+        c.send(sendDataEncoded)
         #c.close()
     s.shutdown(socket.SHUT_RDWR)
     s.close()
@@ -37,7 +45,7 @@ def Main(ip, port):
 
 if __name__ == '__main__':
    
-    ipHost = "172.20.10.2"
-    portHost = 5002
+    ipHost = "127.0.0.1"
+    portHost = 5001
     Main(ipHost, portHost)
 
