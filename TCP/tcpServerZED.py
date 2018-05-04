@@ -27,16 +27,16 @@ def Main(ip, port):
         
         print("from connected user:\n" + receivedDataStr)
         
-        fileMatix =  open("./matrix.txt", "r")
-        linesMatrix = fileMatix.readlines()
-        fileMatix.close()
-        fileEulerAngles =  open("./eulerAngles.txt", "r")
-        linesEuleAngles = fileEulerAngles.readlines()
-        fileEulerAngles.close()
+        fileARMatix =  open("./ARKitWorld_2_ARKitCam.txt", "r")
+        linesARMatrix = fileARMatix.readlines()
+        fileARMatix.close()
+        fileAR2ZEDMatrix =  open("./ARKitCam_2_ZEDCam.txt", "r")
+        linesAR2ZEDMatrix = fileAR2ZEDMatrix.readlines()
+        fileAR2ZEDMatrix.close()
         
-        sendDataMatrix = linesMatrix[-1]
-        sendDataEuler = linesEuleAngles[-1]
-        sendDataEncoded = (sendDataEuler + "\n" + sendDataMatrix).encode('utf-8')
+        sendDataARMatrix = linesARMatrix[-1]
+        sendDataAR2ZEDMatrix = linesAR2ZEDMatrix[-1]
+        sendDataEncoded = (sendDataARMatrix + "?" + sendDataAR2ZEDMatrix).encode('utf-8')
         c.send(sendDataEncoded)
         #c.close()
     s.shutdown(socket.SHUT_RDWR)

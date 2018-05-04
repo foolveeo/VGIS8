@@ -10,15 +10,35 @@ import matplotlib.pyplot as plt
 import cv2
 import glob
   
+
+def writeMatrix(matrix):
+    
+    string:str = ""
+    for i in range(0,matrix.shape[0]):
+        for j in range(0,matrix.shape[1]):
+            string += "{:.9f}".format(matrix[i,j])
+            if(j != 3):
+                string += " "
+        if(i != 3):
+                string += "\t"
+    
+    return string
+
 def multiplyMatrices4x4(rvec_iPhone, tvec_iPhone, rvec_ZED, tvec_ZED):
     
+    print("iPhone:\nrvec:\n ", rvec_iPhone, "\ntvec: \n", tvec_iPhone)
+    print("\n")
+    print("ZED:\nrvec:\n ", rvec_ZED, "\ntvec: \n", tvec_ZED)
+    print("\n")
     
     rvec_iPhone[1,0] = rvec_iPhone[1,0] * -1
     rvec_ZED[1,0] = rvec_ZED[1,0] * -1
-    
+    tvec_iPhone[1] = tvec_iPhone[1] * -1
+    tvec_ZED[1] = tvec_ZED[1] * -1
     rotM_iPhone = cv2.Rodrigues(rvec_iPhone)[0]
     rotM_ZED = cv2.Rodrigues(rvec_ZED)[0]
     
+    rotM_iPhone_inverse = np.linalg.inv(rotM_iPhone)
     rotM_ZED_inverse = np.linalg.inv(rotM_ZED)
     
     iPhone_2_ChB = np.zeros((4,4), np.float)
@@ -38,14 +58,28 @@ def multiplyMatrices4x4(rvec_iPhone, tvec_iPhone, rvec_ZED, tvec_ZED):
     ZED_2_ChB[3,3] = 1
     
     ChB_2_ZED = np.linalg.inv(ZED_2_ChB)
-    
+    ChB_2_iPhone = np.linalg.inv(iPhone_2_ChB)
     iPhone_2_ZED = np.matmul(iPhone_2_ChB, ChB_2_ZED)
+    
+    ZED_2_iPhone = np.matmul(ZED_2_ChB, ChB_2_iPhone)
     
     
     tvec = iPhone_2_ZED[0:3,3]
     rvec = cv2.Rodrigues(iPhone_2_ZED[0:3,0:3])[0]
+    
+    tvec_inv = ZED_2_iPhone[0:3,3]
+    rvec_inv = cv2.Rodrigues(ZED_2_iPhone[0:3,0:3])[0]
 
-    return rvec, tvec
+    origin = np.zeros((4,1), np.float)
+   # origin[0:3] = tvec_iPhone
+    #origin[-1] = origin[1] * -1 
+    origin[3] = 1
+    print("checkerboard origin in checkerboard coord (according to iPhone_2Chk): ", np.matmul(ChB_2_iPhone, origin))
+    iPhone2ZED:np.ndarray((4,4), np.float32) = np.matmul(ZED_2_ChB, ChB_2_iPhone)
+    iPhone2ZED_inv = np.linalg.inv(iPhone2ZED)
+    print("\nzed transf\ntvec: ", np.matmul(iPhone2ZED, origin))
+    print("rvec:\n ", cv2.Rodrigues(iPhone2ZED[0:3,0:3])[0])
+    return rvec, tvec, iPhone2ZED_inv
     
 #
 #def transposeIPHONE(rvec_iPhone, tvec_iPhone, rvec_ZED, tvec_ZED):
@@ -59,10 +93,10 @@ def multiplyMatrices4x4(rvec_iPhone, tvec_iPhone, rvec_ZED, tvec_ZED):
 
 def computeARKit_2_ZED_matrix(rvec_iPhone, tvec_iPhone, rvec_ZED, tvec_ZED):
 
-    rvec, tvec = multiplyMatrices4x4(rvec_iPhone, tvec_iPhone, rvec_ZED, tvec_ZED)
+    rvec, tvec, matrix = multiplyMatrices4x4(rvec_iPhone, tvec_iPhone, rvec_ZED, tvec_ZED)
     
     
-    return rvec, tvec
+    return rvec, tvec, matrix
     
     
 
@@ -188,21 +222,22 @@ distCoeff_iPhone[0,3] = 0.00104743
 distCoeff_iPhone[0,4] = 2.50754
 
 
-images_ZED = ["./3Maggio/samples/RGB_0.png"]
-images_iPhone = ["./3Maggio/samples/IMG_2028.JPG"]
+images_ZED = ["./op/samples/RGB_0.PNG"]
+images_iPhone = ["./4Maggio/samples/IMG_2038.JPG"]
 
 rvecs_ZED, tvecs_ZED = getCameraExtrinsic(images_ZED, cameraMatrix_ZED, distCoeff_ZED)
 rvecs_iPhone, tvecs_iPhone = getCameraExtrinsic(images_iPhone, cameraMatrix_iPhone, distCoeff_iPhone)
 
 
 
-eulerAngles_ARKit_2_ZED, translation_ARKit_2_ZED = computeARKit_2_ZED_matrix(rvecs_iPhone[0], tvecs_iPhone[0], rvecs_ZED[0], tvecs_ZED[0])
-eulerAngles_ARKit_2_ZED_degrees = np.multiply(180/np.pi, eulerAngles_ARKit_2_ZED)
+eulerAngles_ARKit_2_ZED, translation_ARKit_2_ZED, matrix = computeARKit_2_ZED_matrix(rvecs_iPhone[0], tvecs_iPhone[0], rvecs_ZED[0], tvecs_ZED[0])
+
 print ("euler angles:\n",eulerAngles_ARKit_2_ZED)
 print("translation:\n", translation_ARKit_2_ZED)
-eulerAngleFile = open("../TCP/eulerAngles.txt", "a+")
-eulerAngleFile.write(str(eulerAngles_ARKit_2_ZED_degrees[0,0]) + " " + str(eulerAngles_ARKit_2_ZED_degrees[1,0]) + " " + str(eulerAngles_ARKit_2_ZED_degrees[2,0]) + "\n")
-eulerAngleFile.close()
+
+matrixFile = open("../TCP/ARKitCam_2_ZEDCam.txt", "a+")
+matrixFile.write(writeMatrix(matrix) + "\n")
+matrixFile.close()
 
 print("ah scemooooo")
 
