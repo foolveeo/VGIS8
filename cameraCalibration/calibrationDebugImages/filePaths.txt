@@ -1,0 +1,39 @@
+[ "./calibrationDebugImages/iPhone/A.JPG",
+  "./calibrationDebugImages/iPhone/B.JPG",
+  "./calibrationDebugImages/iPhone/C_30.JPG",
+  "./calibrationDebugImages/iPhone/C_45.JPG",
+  "./calibrationDebugImages/iPhone/D_-30.JPG",
+  "./calibrationDebugImages/iPhone/D_-45.JPG",
+  "./calibrationDebugImages/iPhone/E.JPG",
+  "./calibrationDebugImages/iPhone/F_15.JPG",
+  "./calibrationDebugImages/iPhone/F_30.JPG",
+  "./calibrationDebugImages/iPhone/G_-10.JPG",
+  "./calibrationDebugImages/iPhone/G_-20.JPG" ]
+  
+  
+  
+[ "./calibrationDebugImages/iPhone/A.txt",
+  "./calibrationDebugImages/iPhone/B.txt",
+  "./calibrationDebugImages/iPhone/C_30.txt",
+  "./calibrationDebugImages/iPhone/C_45.txt",
+  "./calibrationDebugImages/iPhone/D_-30.txt",
+  "./calibrationDebugImages/iPhone/D_-45.txt",
+  "./calibrationDebugImages/iPhone/E.txt",
+  "./calibrationDebugImages/iPhone/F_15.txt",
+  "./calibrationDebugImages/iPhone/F_30.txt",
+  "./calibrationDebugImages/iPhone/G_-10.txt",
+  "./calibrationDebugImages/iPhone/G_-20.txt" ]
+  
+  
+  
+[ "./calibrationDebugImages/ZED/A/samples/RGB_0.PNG",
+  "./calibrationDebugImages/ZED/B/samples/RGB_0.PNG",
+  "./calibrationDebugImages/ZED/C_30/samples/RGB_0.PNG",
+  "./calibrationDebugImages/ZED/C_45/samples/RGB_0.PNG",
+  "./calibrationDebugImages/ZED/D_-30/samples/RGB_0.PNG",
+  "./calibrationDebugImages/ZED/D_-45/samples/RGB_0.PNG",
+  "./calibrationDebugImages/ZED/E/samples/RGB_0.PNG",
+  "./calibrationDebugImages/ZED/F_15/samples/RGB_0.PNG",
+  "./calibrationDebugImages/ZED/F_30/samples/RGB_0.PNG",
+  "./calibrationDebugImages/ZED/G_-10/samples/RGB_0.PNG",
+  "./calibrationDebugImages/ZED/G_-20/samples/RGB_0.PNG" ]
