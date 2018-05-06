@@ -21,7 +21,7 @@ def Main(ip, port):
         
         
         
-        fileTxt = open("./G_-20.txt", "a+")
+        fileTxt = open("./ARKitWorld_2_ARKitCam.txt", "a+")
         fileTxt.write(receivedDataStr)
         fileTxt.close()
         if(receivedDataStr == "stop"):

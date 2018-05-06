@@ -15,13 +15,13 @@ def getCameraMatrix(rvec, tvec):
     Chkb_2_Cam = np.zeros((4,4), np.float)
     
     
-    rotM_Cam_2_Chkb = cv2.Rodrigues(rvec)[0]
+    rotM_Chkb_2_Cam = cv2.Rodrigues(rvec)[0]
     
-    Cam_2_Chkb[0:3, 0:3] = rotM_Cam_2_Chkb
-    Cam_2_Chkb[0:3, 3] = tvec.ravel()
-    Cam_2_Chkb[3,3] = 1
+    Chkb_2_Cam[0:3, 0:3] = rotM_Chkb_2_Cam
+    Chkb_2_Cam[0:3, 3] = tvec.ravel()
+    Chkb_2_Cam[3,3] = 1
     
-    Chkb_2_Cam = np.linalg.inv(Cam_2_Chkb)
+    Cam_2_Chkb = np.linalg.inv(Chkb_2_Cam)
     
     
     return Cam_2_Chkb, Chkb_2_Cam
@@ -285,39 +285,16 @@ for i in range(0,11):
     rotations_iPhone_2_Ckb[i,:,:] = cv2.Rodrigues(Chkb_2_iPhoneCam[i,0:3, 0:3])[0]
     rotationsCkb_2_iPhone[i,:,:] = cv2.Rodrigues(iPhoneCam_2_Chkb[i,0:3, 0:3])[0]
 
-origin_iPhone_G_20 = np.zeros((4,1), np.float)
-G_20_ZED_D_45 = np.zeros((4,1), np.float)
-origin_iPhone_G_20[3,0] = 1
-G_20_ZED_D_45[3,0] = 1
-G_20_ZED_D_45 = np.matmul(Chkb_2_iPhoneCam[10,:,:], origin_iPhone_G_20)
-print(G_20_ZED_D_45)
-G_20_ZED_D_45 = np.matmul(ZEDCam_2_Chkb[5,:,:], G_20_ZED_D_45)
 
 
-xDir_A = np.zeros((4,1), np.float)
-xDir_ZED_D_45 = np.zeros((4,1), np.float)
-xDir_A[0,0] = 1
-xDir_ZED_D_45 = np.matmul(Chkb_2_iPhoneCam[0,:,:], xDir_A)
-xDir_ZED_D_45 = np.matmul(ZEDCam_2_Chkb[5,:,:], xDir_ZED_D_45)
-print(xDir_ZED_D_45)
+iPhoneCam_2_ZEDCam = np.matmul(Chkb_2_ZEDCam[5,:,:], iPhoneCam_2_Chkb[0,:,:])
 
 
-iPhoneCam_2_ZEDCam = np.matmul(ZEDCam_2_Chkb[5,:,:], Chkb_2_iPhoneCam[0,:,:])
-## G_-20 in iPhone coordinates to Zed coordinates when zed is in D_-45
 
+matrixFile = open("../TCP/ARKitCam_2_ZEDCam.txt", "a+")
+matrixFile.write(writeMatrix(iPhoneCam_2_ZEDCam) + "\n")
+matrixFile.close()
 
-#
-#eulerAngles_ARKit_2_ZED, translation_ARKit_2_ZED, matrix = computeARKit_2_ZED_matrix(rvecs_iPhone[0], tvecs_iPhone[0], rvecs_ZED[0], tvecs_ZED[0])
-#
-#print ("euler angles:\n",eulerAngles_ARKit_2_ZED)
-#print("translation:\n", translation_ARKit_2_ZED)
-#
-#matrixFile = open("../TCP/ARKitCam_2_ZEDCam.txt", "a+")
-#matrixFile.write(writeMatrix(matrix) + "\n")
-#matrixFile.close()
-#
 print("ah scemooooo")
-
-
 
 
