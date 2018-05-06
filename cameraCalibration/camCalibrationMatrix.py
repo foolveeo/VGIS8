@@ -46,10 +46,7 @@ def writeMatrix(matrix):
 
 def multiplyMatrices4x4(rvec_iPhone, tvec_iPhone, rvec_ZED, tvec_ZED):
     
-    print("iPhone:\nrvec:\n ", rvec_iPhone, "\ntvec: \n", tvec_iPhone)
-    print("\n")
-    print("ZED:\nrvec:\n ", rvec_ZED, "\ntvec: \n", tvec_ZED)
-    print("\n")
+  
     
     rvec_iPhone[1,0] = rvec_iPhone[1,0] * -1
     rvec_ZED[1,0] = rvec_ZED[1,0] * -1
@@ -58,8 +55,6 @@ def multiplyMatrices4x4(rvec_iPhone, tvec_iPhone, rvec_ZED, tvec_ZED):
     rotM_iPhone = cv2.Rodrigues(rvec_iPhone)[0]
     rotM_ZED = cv2.Rodrigues(rvec_ZED)[0]
     
-    rotM_iPhone_inverse = np.linalg.inv(rotM_iPhone)
-    rotM_ZED_inverse = np.linalg.inv(rotM_ZED)
     
     iPhone_2_ChB = np.zeros((4,4), np.float)
     ZED_2_ChB = np.zeros((4,4), np.float)
@@ -87,12 +82,8 @@ def multiplyMatrices4x4(rvec_iPhone, tvec_iPhone, rvec_ZED, tvec_ZED):
     tvec = iPhone_2_ZED[0:3,3]
     rvec = cv2.Rodrigues(iPhone_2_ZED[0:3,0:3])[0]
     
-    tvec_inv = ZED_2_iPhone[0:3,3]
-    rvec_inv = cv2.Rodrigues(ZED_2_iPhone[0:3,0:3])[0]
 
     origin = np.zeros((4,1), np.float)
-   # origin[0:3] = tvec_iPhone
-    #origin[-1] = origin[1] * -1 
     origin[3] = 1
     print("checkerboard origin in checkerboard coord (according to iPhone_2Chk): ", np.matmul(ChB_2_iPhone, origin))
     iPhone2ZED:np.ndarray((4,4), np.float32) = np.matmul(ZED_2_ChB, ChB_2_iPhone)
@@ -299,6 +290,7 @@ G_20_ZED_D_45 = np.zeros((4,1), np.float)
 origin_iPhone_G_20[3,0] = 1
 G_20_ZED_D_45[3,0] = 1
 G_20_ZED_D_45 = np.matmul(Chkb_2_iPhoneCam[10,:,:], origin_iPhone_G_20)
+print(G_20_ZED_D_45)
 G_20_ZED_D_45 = np.matmul(ZEDCam_2_Chkb[5,:,:], G_20_ZED_D_45)
 
 
@@ -308,6 +300,9 @@ xDir_A[0,0] = 1
 xDir_ZED_D_45 = np.matmul(Chkb_2_iPhoneCam[0,:,:], xDir_A)
 xDir_ZED_D_45 = np.matmul(ZEDCam_2_Chkb[5,:,:], xDir_ZED_D_45)
 print(xDir_ZED_D_45)
+
+
+iPhoneCam_2_ZEDCam = np.matmul(ZEDCam_2_Chkb[5,:,:], Chkb_2_iPhoneCam[0,:,:])
 ## G_-20 in iPhone coordinates to Zed coordinates when zed is in D_-45
 
 
