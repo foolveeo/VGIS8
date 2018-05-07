@@ -9,49 +9,95 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import glob
-
-
-
-def computeARKit_2_ZED_matrix(rvec_iPhone, tvec_iPhone, rvec_ZED, tvec_ZED):
-    ## iphone -> checkerboard
-    ## checkerboard .ì-> zed
+  
+def getCameraMatrix(rvec, tvec):
+    Cam_2_Chkb = np.zeros((4,4), np.float)
+    Chkb_2_Cam = np.zeros((4,4), np.float)
     
-    rvec_iPhone[1] = rvec_iPhone[1] * -1
-    rvec_ZED[1] = rvec_ZED[1] * -1
+    
+    rotM_Chkb_2_Cam = cv2.Rodrigues(rvec)[0]
+    
+    Chkb_2_Cam[0:3, 0:3] = rotM_Chkb_2_Cam
+    Chkb_2_Cam[0:3, 3] = tvec.ravel()
+    Chkb_2_Cam[3,3] = 1
+    
+    Cam_2_Chkb = np.linalg.inv(Chkb_2_Cam)
+    
+    
+    return Cam_2_Chkb, Chkb_2_Cam
+    
+    
+    
+    
+    
+    
+def writeMatrix(matrix):
+    
+    string:str = ""
+    for i in range(0,matrix.shape[0]):
+        for j in range(0,matrix.shape[1]):
+            string += "{:.9f}".format(matrix[i,j])
+            if(j != 3):
+                string += " "
+        if(i != 3):
+                string += "\t"
+    
+    return string
 
+def multiplyMatrices4x4(rvec_iPhone, tvec_iPhone, rvec_ZED, tvec_ZED):
+    
+  
+    
+    rvec_iPhone[1,0] = rvec_iPhone[1,0] * -1
+    rvec_ZED[1,0] = rvec_ZED[1,0] * -1
     tvec_iPhone[1] = tvec_iPhone[1] * -1
     tvec_ZED[1] = tvec_ZED[1] * -1
-
     rotM_iPhone = cv2.Rodrigues(rvec_iPhone)[0]
-    rotM_iPhone = np.transpose(rotM_iPhone)
     rotM_ZED = cv2.Rodrigues(rvec_ZED)[0]
     
-    matrix_iPhone = np.zeros((4,4), np.float)
-    matrix_ZED = np.zeros((4,4), np.float)
     
-    matrix_iPhone[0:3, 0:3] = rotM_iPhone
-    matrix_iPhone[0,3] = tvec_iPhone[0]
-    matrix_iPhone[1,3] = tvec_iPhone[1] 
-    matrix_iPhone[2,3] = tvec_iPhone[2]
-    matrix_iPhone[3,3] = 1
+    iPhone_2_ChB = np.zeros((4,4), np.float)
+    ZED_2_ChB = np.zeros((4,4), np.float)
     
-    matrix_ZED[0:3, 0:3] = rotM_ZED
-    matrix_ZED[0,3] = tvec_ZED[0]
-    matrix_ZED[1,3] = tvec_ZED[1] 
-    matrix_ZED[2,3] = tvec_ZED[2]
-    matrix_ZED[3,3] = 1
+    iPhone_2_ChB[0:3,0:3] = rotM_iPhone
+    ZED_2_ChB[0:3,0:3] = rotM_ZED
+    
+    iPhone_2_ChB[0,3] = tvec_iPhone[0]
+    iPhone_2_ChB[1,3] = tvec_iPhone[1]
+    iPhone_2_ChB[2,3] = tvec_iPhone[2]
+    ZED_2_ChB[0,3] = tvec_ZED[0]
+    ZED_2_ChB[1,3] = tvec_ZED[1]
+    ZED_2_ChB[2,3] = tvec_ZED[2]
+    
+    iPhone_2_ChB[3,3] = 1
+    ZED_2_ChB[3,3] = 1
+    
+    ChB_2_ZED = np.linalg.inv(ZED_2_ChB)
+    ChB_2_iPhone = np.linalg.inv(iPhone_2_ChB)
+    iPhone_2_ZED = np.matmul(iPhone_2_ChB, ChB_2_ZED)
+    
+    ZED_2_iPhone = np.matmul(ZED_2_ChB, ChB_2_iPhone)
     
     
-    matrix = np.matmul(matrix_iPhone, matrix_ZED)
+    tvec = iPhone_2_ZED[0:3,3]
+    rvec = cv2.Rodrigues(iPhone_2_ZED[0:3,0:3])[0]
     
-    rotM = matrix[0:3, 0:3]
-    rvec2 = cv2.Rodrigues(rotM)[0]
-    rvec = np.subtract(rvec_iPhone, rvec_ZED)
+
+    origin = np.zeros((4,1), np.float)
+    origin[3] = 1
+    print("checkerboard origin in checkerboard coord (according to iPhone_2Chk): ", np.matmul(ChB_2_iPhone, origin))
+    iPhone2ZED:np.ndarray((4,4), np.float32) = np.matmul(ZED_2_ChB, ChB_2_iPhone)
+    iPhone2ZED_inv = np.linalg.inv(iPhone2ZED)
+    print("\nzed transf\ntvec: ", np.matmul(iPhone2ZED, origin))
+    print("rvec:\n ", cv2.Rodrigues(iPhone2ZED[0:3,0:3])[0])
+    return rvec, tvec, iPhone2ZED_inv
+  
+def computeARKit_2_ZED_matrix(rvec_iPhone, tvec_iPhone, rvec_ZED, tvec_ZED):
+
+    rvec, tvec, matrix = multiplyMatrices4x4(rvec_iPhone, tvec_iPhone, rvec_ZED, tvec_ZED)
     
     
-    tvec = np.subtract(tvec_iPhone, tvec_ZED)
-    tvec2 = matrix[0:3,3]
-    return (rvec, tvec)
+    return rvec, tvec, matrix
     
     
 
@@ -85,13 +131,13 @@ def getCameraExtrinsic(images, mtx, dist):
             rvecs.append(rvec)
             tvecs.append(tvec)
             
-            #cv2.namedWindow("img", cv2.WINDOW_NORMAL )        # Create window with freedom of dimensions
-            #cv2.resizeWindow("img", 800, 600)              # Resize window to specified dimensions
+            cv2.namedWindow("img", cv2.WINDOW_NORMAL )        # Create window with freedom of dimensions
+            cv2.resizeWindow("img", 2400, 1200)              # Resize window to specified dimensions
     
             # Draw and display the corners
-            #cv2.drawChessboardCorners(img, (9,6), corners,ret)
-            #cv2.imshow('img',img)
-            #cv2.waitKey(500)
+            cv2.drawChessboardCorners(img, (9,6), corners,ret)
+            cv2.imshow('img',img)
+            cv2.waitKey(10)
     
     cv2.destroyAllWindows()
     
@@ -146,35 +192,6 @@ def getCameraIntrinsic(images):
     
     return (mtx, dist, rvecs, tvecs)
 
-#imagesZED = ["./UNO/samples/RGB_0.png",
-#             "./DUE/samples/RGB_0.png",
-#             "./TRE/samples/RGB_0.png",
-#             "./QUATTRO/samples/RGB_0.png"]
-#
-imagesARKit = ["./uno.jpg",
-               "./due.jpg",
-               "./tre.jpg",
-               "./quattro.jpg"]
-#
-#getCameraExtrinsic2(imagesZED)
-#getCameraExtrinsic2(imagesARKit)
-    
-#used to compute intrinsic ZED
-#images =  glob.glob('C:\\Users\\Fulvio Bertolini\\VGIS8\\cameraCalibration\\Calibration\\samples\\RGB_*.png')
-
-#used to compute intrinsic iPhone
-images_iPhone =  glob.glob('C:\\Users\\Fulvio Bertolini\\VGIS8\\cameraCalibration\\Calibration\\iOS\\IMG_*.jpg')
-
-
-#(mtx, dist, rvecs, tvecs) = getCameraIntrinsic(images)
-
-#(mtxiPhone, distiPhone, _, _) = getCameraIntrinsic(images_iPhone)
-#rvecs, tvecs = getCameraExtrinsic(imagesARKit, mtxiPhone, distiPhone)
-# used to get extrinsic ZED
-#images_ZED = ["./UNO/samples/RGB_0.png",
-#             "./DUE/samples/RGB_0.png",
-#             "./TRE/samples/RGB_0.png",
-#             "./QUATTRO/samples/RGB_0.png"]
 
 # zed intrinsic parameters
 cameraMatrix_ZED = np.zeros((3,3), np.float64)
@@ -206,54 +223,78 @@ distCoeff_iPhone[0,3] = 0.00104743
 distCoeff_iPhone[0,4] = 2.50754
 
 
-images_ZED = ["./test1/ZED/RGB_0.png"]
-images_ZED = ["./test_iPhone_offset_x_45_degrees/IMG_2023.JPG"]
-images_iPhone = ["./test1/iOS/IMG_2012.jpg"]
-images_iPhone =  glob.glob('C:\\Users\\Fulvio Bertolini\\VGIS8\\cameraCalibration\\basicRotations\\IMG_*.jpg')
+images_ZED = [ "./calibrationDebugImages/ZED/A/samples/RGB_0.PNG",
+                  "./calibrationDebugImages/ZED/B/samples/RGB_0.PNG",
+                  "./calibrationDebugImages/ZED/C_30/samples/RGB_0.PNG",
+                  "./calibrationDebugImages/ZED/C_45/samples/RGB_0.PNG",
+                  "./calibrationDebugImages/ZED/D_-30/samples/RGB_0.PNG",
+                  "./calibrationDebugImages/ZED/D_-45/samples/RGB_0.PNG",
+                  "./calibrationDebugImages/ZED/E/samples/RGB_0.PNG",
+                  "./calibrationDebugImages/ZED/F_15/samples/RGB_0.PNG",
+                  "./calibrationDebugImages/ZED/F_30/samples/RGB_0.PNG",
+                  "./calibrationDebugImages/ZED/G_-10/samples/RGB_0.PNG",
+                  "./calibrationDebugImages/ZED/G_-20/samples/RGB_0.PNG" ]
 
-images_iPhone =  [ "./basicRotations/IMG_2014.jpg", "./basicRotations/IMG_2015.jpg", "./basicRotations/IMG_2016.jpg", "./basicRotations/IMG_2017.jpg"]
-images_iPhone = ["./test_iPhone_offset_x_45_degrees/IMG_2024.JPG"]
 
-rvecs_ZED, tvecs_ZED = getCameraExtrinsic(images_ZED, cameraMatrix_iPhone, distCoeff_iPhone)
+
+
+images_iPhone = ["./calibrationDebugImages/iPhone/A.JPG",
+					"./calibrationDebugImages/iPhone/B.JPG",
+					"./calibrationDebugImages/iPhone/C_30.JPG",
+					"./calibrationDebugImages/iPhone/C_45.JPG",
+					"./calibrationDebugImages/iPhone/D_-30.JPG",
+					"./calibrationDebugImages/iPhone/D_-45.JPG",
+					"./calibrationDebugImages/iPhone/E.JPG",
+					"./calibrationDebugImages/iPhone/F_15.JPG",
+					"./calibrationDebugImages/iPhone/F_30.JPG",
+					"./calibrationDebugImages/iPhone/G_-10.JPG",
+					"./calibrationDebugImages/iPhone/G_-20.JPG" ]
+
+
+rvecs_ZED, tvecs_ZED = getCameraExtrinsic(images_ZED, cameraMatrix_ZED, distCoeff_ZED)
 rvecs_iPhone, tvecs_iPhone = getCameraExtrinsic(images_iPhone, cameraMatrix_iPhone, distCoeff_iPhone)
 
-#
-#rotMat_iPhone_2_CheckerBoard = cv2.Rodrigues(rvecs_iPhone[0])[0]
-#rotMat_ZED_2_CheckerBoard = cv2.Rodrigues(rvecs_ZED[0])[0]
-#rotMat_CheckerBorard_2_ZED = np.transpose(rotMat_ZED_2_CheckerBoard)
-#
-#rotMat_iPhone_2_ZED = np.matmul(rotMat_iPhone_2_CheckerBoard, rotMat_CheckerBorard_2_ZED)
-#
-#
-#transVec_iPhone_2_CheckerBoard = tvecs_iPhone[0]
-#transVec_ZED_2_CheckerBoard = tvecs_ZED[0]
-#transVec_CheckerBorard_2_ZED = np.multiply(transVec_ZED_2_CheckerBoard, -1)
-#
-#transVec_iPhone_2_ZED = np.add(transVec_iPhone_2_CheckerBoard, transVec_CheckerBorard_2_ZED)
-#
-#
-#
-#
-#
-#transfMat_iPhone_2_ZED = np.zeros((4,4), np.float)
-#
-#transfMat_iPhone_2_ZED[0:3, 0:3] = rotMat_iPhone_2_ZED
-#transfMat_iPhone_2_ZED[0,3] = transVec_iPhone_2_ZED[0]
-#transfMat_iPhone_2_ZED[1,3] = transVec_iPhone_2_ZED[1] 
-#transfMat_iPhone_2_ZED[2,3] = transVec_iPhone_2_ZED[2]
-#transfMat_iPhone_2_ZED[3,3] = 1
-#
-#rotMat_iPhone_2_ZED_transposed = np.transpose(rotMat_iPhone_2_ZED)
-#  
-#eulerAngles_transposed = cv2.Rodrigues(rotMat_iPhone_2_ZED_transposed)[0]  
-#eulerAngles = cv2.Rodrigues(rotMat_iPhone_2_ZED)[0]
+originZED = np.zeros((len(images_ZED),4,1), np.float)
+origin_iPhone = np.zeros((len(images_iPhone),4,1), np.float)
+originZED[:,3,0] = 1
+origin_iPhone[:,3,0] = 1
 
-eulerAngles_ARKit_2_ZED, tranlation_ARKit_2_ZED = computeARKit_2_ZED_matrix(rvecs_iPhone[0], tvecs_iPhone[0], rvecs_ZED[0], tvecs_ZED[0])
-print ("euler angles:\n", np.multiply(180/np.pi,eulerAngles_ARKit_2_ZED))
-print("translation:\n", tranlation_ARKit_2_ZED)
+pointsZED = np.zeros((len(images_ZED),4,1), np.float)
+points_iPhone = np.zeros((len(images_iPhone),4,1), np.float)
+rotationsCkb_2_ZED = np.zeros((len(images_ZED),3,1), np.float)
+rotationsCkb_2_iPhone = np.zeros((len(images_iPhone),3,1), np.float)
+rotationsZED_2_Ckb = np.zeros((len(images_ZED),3,1), np.float)
+rotations_iPhone_2_Ckb = np.zeros((len(images_iPhone),3,1), np.float)
+ZEDCam_2_Chkb = np.zeros((len(images_ZED),4,4), np.float)
+iPhoneCam_2_Chkb = np.zeros((len(images_iPhone),4,4), np.float)
+Chkb_2_ZEDCam = np.zeros((len(images_ZED),4,4), np.float)
+Chkb_2_iPhoneCam = np.zeros((len(images_iPhone),4,4), np.float)
+
+
+for i in range(0,11):
+    ZEDCam_2_Chkb[i,:,:], Chkb_2_ZEDCam[i,:,:] = getCameraMatrix(rvecs_ZED[i], tvecs_ZED[i])
+    iPhoneCam_2_Chkb[i,:,:], Chkb_2_iPhoneCam[i,:,:] = getCameraMatrix(rvecs_iPhone[i], tvecs_iPhone[i])
+    
+    pointsZED[i,:,:] = np.matmul(ZEDCam_2_Chkb[i,:,:], originZED[i,:,:])
+    originZED[i,:,:] = np.matmul(Chkb_2_ZEDCam[i,:,:], pointsZED[i,:,:])
+    points_iPhone[i,:,:] = np.matmul(iPhoneCam_2_Chkb[i,:,:], origin_iPhone[i,:,:])
+    origin_iPhone[i,:,:] = np.matmul(Chkb_2_iPhoneCam[i,:,:], points_iPhone[i,:,:])
+    
+    rotationsZED_2_Ckb[i,:,:] = cv2.Rodrigues(Chkb_2_ZEDCam[i,0:3, 0:3])[0]
+    rotationsCkb_2_ZED[i,:,:] = cv2.Rodrigues(ZEDCam_2_Chkb[i,0:3, 0:3])[0]
+    rotations_iPhone_2_Ckb[i,:,:] = cv2.Rodrigues(Chkb_2_iPhoneCam[i,0:3, 0:3])[0]
+    rotationsCkb_2_iPhone[i,:,:] = cv2.Rodrigues(iPhoneCam_2_Chkb[i,0:3, 0:3])[0]
+
+
+
+iPhoneCam_2_ZEDCam = np.matmul(Chkb_2_ZEDCam[5,:,:], iPhoneCam_2_Chkb[0,:,:])
+
+
+
+matrixFile = open("../TCP/ARKitCam_2_ZEDCam.txt", "a+")
+matrixFile.write(writeMatrix(iPhoneCam_2_ZEDCam) + "\n")
+matrixFile.close()
 
 print("ah scemooooo")
-
-
 
 

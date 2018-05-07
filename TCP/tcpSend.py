@@ -1,4 +1,5 @@
 import socket
+import sys
 
 def Main(ip, port, data):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -6,10 +7,10 @@ def Main(ip, port, data):
     s.send(data)
    
 if __name__ == '__main__':
-    
-    ipHost = "127.0.0.1"
-    portHost = 5002
-    string = "La bamba!"
-    datToSend = string.encode('utf-8')
-    Main(ipHost, portHost, datToSend)
+    arguments = str(sys.argv)
+    ipHost = arguments[0]
+    portHost = int(arguments[1])
+    string = arguments[2]
+    dataToSend = string.encode('utf-8')
+    Main(ipHost, portHost, dataToSend)
 
