@@ -5,7 +5,7 @@ def sendTo(ip, port, data):
     s.connect((ip, port))
     s.send(data)
    
-def Main(ip, port):
+def Main(ip, port): 
     
     s = socket.socket()
     s.bind((ip,port))
