@@ -7,7 +7,7 @@ Created on Mon May  7 12:38:50 2018
 
 
 import numpy as np
-
+import cv2
   
 def getCameraExtrinsic(images, mtx, dist):
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -86,8 +86,8 @@ def writeMatrix(matrix):
     
     return string
 
-image_ZED = ["./7maggio/samples/RGB_0.PNG"]
-image_iPhone = ["./7maggio/iPhone/IMG_2076.JPG"]
+image_ZED = ["./10maggio/samples/RGB_0.PNG"]
+image_iPhone = ["./10maggio/IMG_2095.JPG"]
 
 
 # zed intrinsic parameters
@@ -121,8 +121,8 @@ distCoeff_iPhone[0,3] = 0.00104743
 distCoeff_iPhone[0,4] = 2.50754
 
 
-rvecs_ZED, tvecs_ZED = getCameraExtrinsic(images_ZED, cameraMatrix_ZED, distCoeff_ZED)
-rvecs_iPhone, tvecs_iPhone = getCameraExtrinsic(images_iPhone, cameraMatrix_iPhone, distCoeff_iPhone)
+rvecs_ZED, tvecs_ZED = getCameraExtrinsic(image_ZED, cameraMatrix_ZED, distCoeff_ZED)
+rvecs_iPhone, tvecs_iPhone = getCameraExtrinsic(image_iPhone, cameraMatrix_iPhone, distCoeff_iPhone)
 
 ZEDCam_2_Chkb = np.zeros((4,4), np.float)
 iPhoneCam_2_Chkb = np.zeros((4,4), np.float)
@@ -138,8 +138,8 @@ iPhoneCam_2_ZEDCam = np.matmul(Chkb_2_ZEDCam[:,:], iPhoneCam_2_Chkb[:,:])
 
 
 matrixFile = open("../TCP/ARKitCam_2_ZEDCam.txt", "a+")
-matrixFile.write(cal.writeMatrix(iPhoneCam_2_ZEDCam) + "\n")
+matrixFile.write(writeMatrix(iPhoneCam_2_ZEDCam) + "\n")
 matrixFile.close()
-
+print(iPhoneCam_2_ZEDCam)
 print("ah scemooooo")
    

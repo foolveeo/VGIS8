@@ -60,33 +60,7 @@ def main():
 
     runtime_parameters = zcam.PyRuntimeParameters()
     
-    
-    #    key = ''
-#    print("press s to start recording")
-#    print("press + or - to increase/decrease white balance")
-#    while key != 115:  # for 's' key
-#        if(key == 43):
-#            current_value = cam.get_camera_settings(sl.PyCAMERA_SETTINGS.PyCAMERA_SETTINGS_WHITEBALANCE)
-#            cam.set_camera_settings(sl.PyCAMERA_SETTINGS.PyCAMERA_SETTINGS_WHITEBALANCE, current_value + 100)
-#            print(str_camera_settings + ": " + str(current_value + step_camera_settings))
-#        if(key == 45):
-#            current_value = cam.get_camera_settings(sl.PyCAMERA_SETTINGS.PyCAMERA_SETTINGS_WHITEBALANCE)
-#            cam.set_camera_settings(sl.PyCAMERA_SETTINGS.PyCAMERA_SETTINGS_WHITEBALANCE, current_value + 100)
-#            print(str_camera_settings + ": " + str(current_value + step_camera_settings))
-#        err = zedcam.grab(runtime_parameters)
-#        if err == tp.PyERROR_CODE.PySUCCESS:
-#            zedcam.retrieve_image(rgbImg, sl.PyVIEW.PyVIEW_LEFT)
-#            zedcam.retrieve_image(depthImg, sl.PyVIEW.PyVIEW_DEPTH)
-#            zedcam.retrieve_image(normImg, sl.PyMEASURE.PyMEASURE_NORMALS)
-#            cv2.imshow("ZED RGB", rgbImg.get_data())
-#            cv2.imshow("ZED Depth", depthImg.get_data())
-#            cv2.imshow("ZED Normals", normImg.get_data())
-#            
-#            
-#            
-#            key = cv2.waitKey(5)
-#        else:
-#            key = cv2.waitKey(5)
+        key = cv2.waitKey(5)
     
     
     

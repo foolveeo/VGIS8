@@ -1,0 +1,4 @@
+﻿     Creating library C:\Users\Fulvio Bertolini\source\repos\Dll1\Debug\Dll1.lib and object C:\Users\Fulvio Bertolini\source\repos\Dll1\Debug\Dll1.exp
+Dll1.obj : error LNK2019: unresolved external symbol "private: void __thiscall cv::String::deallocate(void)" (?deallocate@String@cv@@AAEXXZ) referenced in function "public: __thiscall cv::String::~String(void)" (??1String@cv@@QAE@XZ)
+C:\OpenCV-3.4.0\opencv\build\x64\vc15\lib\opencv_world341d.lib : warning LNK4272: library machine type 'x64' conflicts with target machine type 'x86'
+C:\Users\Fulvio Bertolini\source\repos\Dll1\Debug\Dll1.dll : fatal error LNK1120: 1 unresolved externals
