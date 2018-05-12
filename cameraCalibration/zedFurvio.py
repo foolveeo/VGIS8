@@ -60,10 +60,8 @@ def main():
 
     runtime_parameters = zcam.PyRuntimeParameters()
     
-        key = cv2.waitKey(5)
     
-    
-    
+
     
 
     sessionID = input("Enter session ID: ")
