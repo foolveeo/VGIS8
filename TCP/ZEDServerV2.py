@@ -125,9 +125,9 @@ def writeMatrix(matrix):
         for j in range(0,matrix.shape[1]):
             string += "{:.9f}".format(matrix[i,j])
             if(j != 3):
-                string += " "
+                string += "="
         if(i != 3):
-                string += "\t"
+                string += "!"
     
     return string
 
@@ -140,44 +140,52 @@ def Main(ip, port, sessionPath):
     print("listening")
     c, addr = s.accept()
     print ("Connection from: " + str(addr))
-    while 1:
-        receivedData = c.recv(16777216)
-        if not receivedData:
-            break
-        #receivedData =  np.asarray(bytearray(receivedData), dtype=np.uint8)
-        x = np.frombuffer(receivedData, dtype='uint8')
-        
-        #decode the array into an image
-        img = cv2.imdecode(x, 1)
-        
-        cv2.imwrite(sessionPath + 'ZED/checkerBoard.png', img)
-        break
-        #image_ZED = [sessionPath + "checkerBoard.png"]
-        #image_iPhone = [sessionPath + "iPhone/checkerBoard.png"]
+    
+    receivedData = c.recv(16777216)
+    
+    
+    #receivedData =  np.asarray(bytearray(receivedData), dtype=np.uint8)
+    x = np.frombuffer(receivedData, dtype='uint8')
+    
+    #decode the array into an image
+    img = cv2.imdecode(x, 1)
+    
+    cv2.imwrite(sessionPath + 'ZED/checkerBoard.png', img)
+    
+    image_ZED = [sessionPath + "ZED/checkerBoard.png"]
+    image_iPhone = [sessionPath + "iPhone/checkerBoard.png"]
 
-        # get extrinsics iPhone and  ZED
-        #rvecs_ZED, tvecs_ZED = getCameraExtrinsic(image_ZED, cameraMatrix_ZED, distCoeff_ZED)
-        #rvecs_iPhone, tvecs_iPhone = getCameraExtrinsic(image_iPhone, cameraMatrix_iPhone, distCoeff_iPhone)
-        
-        
-        # get single camera2checkerboard matrices
-        #ZEDCam_2_Chkb[:,:], Chkb_2_ZEDCam[:,:] = getCameraMatrix(rvecs_ZED[0], tvecs_ZED[0])
-        #iPhoneCam_2_Chkb[:,:], Chkb_2_iPhoneCam[:,:] = getCameraMatrix(rvecs_iPhone[0], tvecs_iPhone[0])
-        
-        # get matrix from iPhone to Zed
-        #iPhoneCam_2_ZEDCam = np.matmul(Chkb_2_ZEDCam[:,:], iPhoneCam_2_Chkb[:,:])
+    # get extrinsics iPhone and  ZED
+    rvecs_ZED, tvecs_ZED = getCameraExtrinsic(image_ZED, cameraMatrix_ZED, distCoeff_ZED)
+    rvecs_iPhone, tvecs_iPhone = getCameraExtrinsic(image_iPhone, cameraMatrix_iPhone, distCoeff_iPhone)
+    
+    
+    # get single camera2checkerboard matrices
+    ZEDCam_2_Chkb[:,:], Chkb_2_ZEDCam[:,:] = getCameraMatrix(rvecs_ZED[0], tvecs_ZED[0])
+    iPhoneCam_2_Chkb[:,:], Chkb_2_iPhoneCam[:,:] = getCameraMatrix(rvecs_iPhone[0], tvecs_iPhone[0])
+    
+    # get matrix from iPhone to Zed
+    iPhoneCam_2_ZEDCam = np.matmul(Chkb_2_ZEDCam[:,:], iPhoneCam_2_Chkb[:,:])
 
-        # encode the matrix in string
-        #iPhoneCam_2_ZEDCam_matrix_string = writeMatrix(iPhoneCam_2_ZEDCam)
-        # read the other strings from file:
-        #    1) ARKitWorld_2_ARKitCam
-        #    1) azimuth and zenith angles
-        
-        # send everithing back to unity
-        #sendDataARMatrix = linesARMatrix[-1]
-        #sendDataAR2ZEDMatrix = linesAR2ZEDMatrix[-1]
-        #sendDataEncoded = (sendDataARMatrix + "?" + sendDataAR2ZEDMatrix).encode('utf-8')
-        #c.send(sendDataEncoded)
+    # encode the matrix in string
+    iPhoneCam_2_ZEDCam_matrix_string = writeMatrix(iPhoneCam_2_ZEDCam)
+   
+    
+    # read the other strings from file:
+    #    1) ARKitWorld_2_ARKitCam
+    #    1) azimuth and zenith angles
+    arkitMatrixFile = open(sessionPath + "iPhone/ARKitWorld_2_ARKitCam.txt", "r")
+    arkitMatrixString = arkitMatrixFile.readlines()
+    arkitMatrixFile.close()
+    
+    
+    anglesFile = open(sessionPath + "iPhone/Zenith_Azimuth.txt", "r")
+    anglesString = anglesFile.readlines()
+    anglesFile.close()
+    
+    
+    sendDataEncoded = (iPhoneCam_2_ZEDCam_matrix_string + "?" + arkitMatrixString[0] +"?" + anglesString[0]).encode('utf-8')
+    c.send(sendDataEncoded)
         
     #c.close()
     #s.shutdown(socket.SHUT_RDWR)
@@ -193,12 +201,11 @@ if __name__ == '__main__':
     
     sessionID = input("Enter session ID: ")
     imgPath = "../Sessions/" + sessionID + "/"
-    if not os.path.exists(imgPath):
-        os.makedirs(imgPath)
+    if os.path.exists(imgPath):
         os.makedirs(imgPath + "ZED/")
         Main(ipHost, portHost, imgPath)
     else:
-        print("Directory with same session ID already exist!")
+        print("Directory with session ID doesn't exist!")
     
     
 

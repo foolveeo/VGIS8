@@ -36,7 +36,7 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
-img = cv2.imread('rgb1239.png')
+img = cv2.imread('RGB_29.png')
 hsv = cv2.cvtColor(img,cv2.COLOR_BGR2HLS)
 chR, chB, chG = bgr_to_chR_chG(img)
 
