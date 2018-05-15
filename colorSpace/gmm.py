@@ -10,10 +10,18 @@ import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 import cv2
 import numpy as np
+import math
 from sklearn.mixture import GaussianMixture
 import scipy.signal as signal
 
 from matplotlib.patches import Ellipse
+
+
+def computeGaussSimilarity(mean1, mean2, sigma1, sigma2):
+
+    crossCorrInZero = np.multiply( mlab.normpdf(np.zeros((1), np.float), mean1 - mean2, math.sqrt(sigma1**2 + sigma2**2)), math.sqrt(sigma1**2 + sigma2**2) * math.sqrt(math.pi * 2) )
+    return crossCorrInZero
+
 
 
 def draw_ellipse(position, covariance, ax=None, **kwargs): 
@@ -133,15 +141,15 @@ def GMMChromaticityGreen(imgPath, nbr_classes, min_prob):
     plt.legend()
     plt.show()
     
-    crossCorr = np.zeros((nbr_classes, nbr_classes,2*2560-1), np.float)
+    crossCorr = np.zeros((nbr_classes, nbr_classes), np.float)
     
     
-    x = np.linspace(-255, 255, 2*2560-1)
+    #x = np.linspace(-255, 255, 2*2560-1)
     
-    for i in range(nbr_classes):
+    #for i in range(nbr_classes):
         #plt.figure()
-        for j in range(nbr_classes):
-            crossCorr[i,j] = signal.correlate(normValues[i], normValues[j])
+        #for j in range(nbr_classes):
+            #crossCorr[i,j] = signal.correlate(normValues[i], normValues[j])
             
             #plt.plot(x, crossCorr[i,j], label=(str(i) + " - " + str(j)))
         #plt.legend()
@@ -149,9 +157,20 @@ def GMMChromaticityGreen(imgPath, nbr_classes, min_prob):
         
     #plt.figure()
     
-    crossCorr[i,j] = signal.correlate(normValues[i], normValues[j])
+    real_nbr_classes = nbr_classes
+    for i in range(nbr_classes):
+        for j in range(nbr_classes):
+            if i > j:
+                crossCorr[i,j] = computeGaussSimilarity(means[i], means[j], sigmas[i], sigmas[j])
+                if crossCorr[i,j] > 0.6:
+                    prob[:,i] = prob[:,i] + prob[:,j]
+                    prob[:,j] = np.zeros(prob[:,j].shape)
+                    real_nbr_classes -= 1
+                    
+                
+    print("from ", nbr_classes, " to ", real_nbr_classes, " classes")
     plt.figure()
-    plt.imshow(crossCorr[:,:,2560], cmap="gray")
+    plt.imshow(crossCorr, cmap="gray")
     
     
     
@@ -202,7 +221,7 @@ def GMMChromaticityGreen(imgPath, nbr_classes, min_prob):
     #cv2.imwrite("probabilities.png", probClasses)
 
 
-GMMChromaticityGreen('RGB_40.png', 7, 0)
+GMMChromaticityGreen('RGB_40.png', 7, 0.7)
 
 #
 #
@@ -296,3 +315,5 @@ GMMChromaticityGreen('RGB_40.png', 7, 0)
 ###chromaticity = np.divide(chromaticity, 255)
 ###
 ##plt.scatter(chRCrop, chBCrop)
+
+print("Fulvio is a penis")

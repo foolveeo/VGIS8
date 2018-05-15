@@ -16,16 +16,16 @@ import scipy.signal as signal
 
 from matplotlib.patches import Ellipse
 
-sigma1 = 2
-sigma2 = 10
+sigma1 = 12
+sigma2 = 12
 
-mean = 0
+mean1 = 43
+mean2 = 4
 
 x = np.linspace(-30,30, 1000)
-normValues1 = np.multiply(mlab.normpdf(x, mean, sigma1), sigma1 * math.sqrt(math.pi * 2))
-normValues2 = np.multiply(mlab.normpdf(x, mean, sigma2), sigma2 * math.sqrt(math.pi * 2))
-#normValues1 = mlab.normpdf(x, mean, sigma1)
-#normValues2 = mlab.normpdf(x, mean, sigma2)
+normValues1 = np.multiply(mlab.normpdf(x, 0, sigma1), 1)
+normValues2 = np.multiply(mlab.normpdf(x, mean2-mean1, sigma2), 1)
+
 plt.figure()
 plt.plot(x,normValues1, label="1")
 plt.plot(x, normValues2, label="2")
@@ -34,7 +34,10 @@ plt.show()
 
 x = np.linspace(-30,30, 1000*2-1)
 plt.figure()
-crossCorr = np.divide(signal.convolve(normValues1, normValues2), (sigma1 + sigma2) * math.pi * 4 )
+#crossCorr = np.divide(signal.convolve(normValues1, normValues2), (sigma1 + sigma2) * math.pi * 4 )
+crossCorr = np.multiply(mlab.normpdf(x, mean1 - mean2, math.sqrt(sigma1**2 + sigma2**2)),  math.sqrt(sigma1**2 + sigma2**2) * math.sqrt(math.pi * 2))
+print(crossCorr[999])
+
 plt.plot(x, crossCorr)
 plt.legend()
 plt.show()
