@@ -110,7 +110,7 @@ def bgr_to_chR_chG(bgrImg):
 def GMMChromaticityGreen(imgPath, nbr_classes, min_prob):
     
     
-    img = cv2.imread('RGB_40.png')
+    img = cv2.imread(imgPath)
     chG = bgr_to_chG(img)
     
     
@@ -134,12 +134,12 @@ def GMMChromaticityGreen(imgPath, nbr_classes, min_prob):
     sigmas = np.sqrt(covariances)
     normValues = np.zeros((nbr_classes, x.shape[0]), np.float)
     
-    plt.figure()
+#    plt.figure()
     for i in range(nbr_classes):  
         normValues[i] = mlab.normpdf(x, means[i], sigmas[i])
-        plt.plot(x, normValues[i], label=str(i))
-    plt.legend()
-    plt.show()
+#        plt.plot(x, normValues[i], label=str(i))
+#    plt.legend()
+#    plt.show()
     
     crossCorr = np.zeros((nbr_classes, nbr_classes), np.float)
     
@@ -157,22 +157,22 @@ def GMMChromaticityGreen(imgPath, nbr_classes, min_prob):
         
     #plt.figure()
     
-    real_nbr_classes = nbr_classes
-    for i in range(nbr_classes):
-        for j in range(nbr_classes):
-            if i > j:
-                crossCorr[i,j] = computeGaussSimilarity(means[i], means[j], sigmas[i], sigmas[j])
-                if crossCorr[i,j] > 0.6:
-                    prob[:,i] = prob[:,i] + prob[:,j]
-                    prob[:,j] = np.zeros(prob[:,j].shape)
-                    real_nbr_classes -= 1
-                    
-                
-    print("from ", nbr_classes, " to ", real_nbr_classes, " classes")
-    plt.figure()
-    plt.imshow(crossCorr, cmap="gray")
-    
-    
+#    real_nbr_classes = nbr_classes
+#    for i in range(nbr_classes):
+#        for j in range(nbr_classes):
+#            if i > j:
+#                crossCorr[i,j] = computeGaussSimilarity(means[i], means[j], sigmas[i], sigmas[j])
+#                if crossCorr[i,j] > 0.6:
+#                    prob[:,i] = prob[:,i] + prob[:,j]
+#                    prob[:,j] = np.zeros(prob[:,j].shape)
+#                    real_nbr_classes -= 1
+#                    
+#                
+#    print("from ", nbr_classes, " to ", real_nbr_classes, " classes")
+#    plt.figure()
+#    plt.imshow(crossCorr, cmap="gray")
+#    
+#    
     
     indexBestClasses = np.zeros(prob.shape[0])
     bestClassProb = np.zeros(prob.shape[0])
@@ -198,21 +198,23 @@ def GMMChromaticityGreen(imgPath, nbr_classes, min_prob):
     indexClasses = indexClasses.reshape(chG.shape[0],chG.shape[1])
     
     
-    plt.figure()
-    plt.imshow(bestClassProb, cmap='gray')
-    plt.title("probabilities")
-    
-    plt.figure()
-    plt.imshow(indexClasses, cmap='nipy_spectral')
-    plt.title("classes")
-    
-    plt.figure()
-    plt.imshow(secondBestClassProb, cmap='gray')
-    plt.title("secondProbabilities")
+#    plt.figure()
+#    plt.imshow(bestClassProb, cmap='gray')
+#    plt.title("probabilities")
+#    
+#    plt.figure()
+#    plt.imshow(indexClasses, cmap='nipy_spectral')
+#    plt.title("classes")
+#    
+#    plt.figure()
+#    plt.imshow(secondBestClassProb, cmap='gray')
+#    plt.title("secondProbabilities")
     
     plt.figure()
     plt.imshow(indexBestClasses, cmap='nipy_spectral')
     plt.title("classes selected")
+    plt.savefig("classes_" + imgPath)
+
     
     
     
@@ -221,8 +223,45 @@ def GMMChromaticityGreen(imgPath, nbr_classes, min_prob):
     #cv2.imwrite("probabilities.png", probClasses)
 
 
-GMMChromaticityGreen('RGB_40.png', 7, 0.7)
-
+GMMChromaticityGreen('RGB_40.png', 4, 0.7)
+GMMChromaticityGreen('rgb1239.png', 5, 0.8)
+GMMChromaticityGreen('rgb1404.png', 5, 0.8)
+#GMMChromaticityGreen('RGB_29.png', 7, 0.7)
+#GMMChromaticityGreen('RGB_151.png', 7, 0.7)
+#GMMChromaticityGreen('RGB_210.png', 7, 0.7)
+#GMMChromaticityGreen('RGB_213.png', 7, 0.7)
+#GMMChromaticityGreen('IMG_2106.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2107.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2108.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2109.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2110.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2111.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2113.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2114.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2115.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2116.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2117.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2118.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2119.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2120.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2121.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2122.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2123.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2124.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2125.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2126.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2127.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2128.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2129.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2130.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2131.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2132.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2133.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2134.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2135.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2136.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2137.jpg', 7, 0.7)
+#GMMChromaticityGreen('IMG_2138.jpg', 7, 0.7)
 #
 #
 #img = cv2.imread('RGB_40.png')
@@ -316,4 +355,4 @@ GMMChromaticityGreen('RGB_40.png', 7, 0.7)
 ###
 ##plt.scatter(chRCrop, chBCrop)
 
-print("Fulvio is a penis")
+#print("Fulvio is a penis")
