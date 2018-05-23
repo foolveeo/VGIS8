@@ -11,6 +11,7 @@ Python script to create a new session and folder structure with it
 ./Session/{SESSION_ID}/ZED contains all file relative to the zed:
     ./Session/{SESSION_ID}/ZED/checkerBoard.PNG file needed to calibrate the zed with opencv
     ./Session/{SESSION_ID}/ZED/tcpMessage.txt contains the tcp message encoded for unity to unwrapp the required values
+   ./Session/{SESSION_ID}/ZED/sunDir/ contains the sun direction in view space and clip space
     
 ./Session/{SESSION_ID}/iPhone contains all file relative to the iPhone and ARKit:
     ./Session/{SESSION_ID}/iPhone/checkerBoard.PNG file needed to calibrate the iPhone with opencv
@@ -33,6 +34,9 @@ import os
 import socket
 import numpy as np
 import cv2
+import sys
+sys.path.insert(0, './sun-position/')
+
 from sunposition import sunpos
 from datetime import datetime
 
@@ -224,17 +228,19 @@ def ARKitCheckerBoardReceive(folderCheckerBoarARKit, ip, port):
     print("listening")
     c, addr = s.accept()
     print ("Connection from: " + str(addr))
-    
-    receivedData = c.recv(16777216)
-    x = np.frombuffer(receivedData, dtype='uint8')
-    
-    #decode the array into an image
-    img = cv2.imdecode(x, 1)
-    imgTransposed = np.zeros((img.shape[1], img.shape[0]), np.uint8)
-    
-    imgTransposed = cv2.transpose(img);
-    imgTransposed = cv2.flip(imgTransposed, 0);
-    cv2.imwrite(folderCheckerBoarARKit + 'checkerBoard.png', imgTransposed)
+    i = 9999999
+    while 1:
+        receivedData = c.recv(16777216)
+        x = np.frombuffer(receivedData, dtype='uint8')
+        
+        #decode the array into an image
+        img = cv2.imdecode(x, 1)
+        imgTransposed = np.zeros((img.shape[1], img.shape[0]), np.uint8)
+        
+        imgTransposed = cv2.transpose(img);
+        imgTransposed = cv2.flip(imgTransposed, 0);
+        cv2.imwrite(folderCheckerBoarARKit + 'checkerBoard.png', imgTransposed)
+        break
     
     print("shut down")
     s.close()
@@ -281,22 +287,29 @@ if os.path.exists(sessionPath):
     print("Directory with session ID already exist!")
 else:
     os.makedirs(sessionPath)
+    
     zedFolder = sessionPath + "ZED/"
     iPhoneFolder = sessionPath + "iPhone/"
     imagesFolder = sessionPath + "images/"
-    meshFolder = sessionPath + "meshes/sa"
+    meshFolder = sessionPath + "meshes/"
+    colorPath = imagesFolder + "color/"
+    depthPath = imagesFolder + "depth/"
+    normalPath = imagesFolder + "normals/"
+    sunDirPath = sessionPath + "sunDirection/"
+    
     
     os.makedirs(zedFolder)
     os.makedirs(iPhoneFolder)
     os.makedirs(imagesFolder)
     os.makedirs(meshFolder)
+    os.makedirs(sunDirPath)
+    os.makedirs(colorPath)
+    os.makedirs(depthPath)
+    os.makedirs(normalPath)
     
-    colorPath = imagesFolder + "color/"
-    depthPath = imagesFolder + "depth/"
-    normalPath = imagesFolder + "normals/"
     
-    ARKitCheckerBoardReceive(iPhoneFolder, "172.20.10.2", 5005)
     ARKitDataReceive(iPhoneFolder, "172.20.10.2", 5004)
+    ARKitCheckerBoardReceive(iPhoneFolder, "172.20.10.2", 5005)
     ZEDServerSendDataReceiveCheckerBoard(zedFolder, iPhoneFolder, "127.0.0.1", 5001, 1)
     
     
