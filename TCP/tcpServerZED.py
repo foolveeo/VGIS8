@@ -6,7 +6,7 @@ Created on Thu May  3 19:15:41 2018
 """
 
 import socket
-
+import os
    
 def Main(ip, port):
     
@@ -36,7 +36,8 @@ def Main(ip, port):
         
         sendDataARMatrix = linesARMatrix[-1]
         sendDataAR2ZEDMatrix = linesAR2ZEDMatrix[-1]
-        sendDataEncoded = (sendDataARMatrix + "?" + sendDataAR2ZEDMatrix).encode('utf-8')
+        sendDataString = sendDataARMatrix + "?" + sendDataAR2ZEDMatrix
+        sendDataEncoded = (sendDataString).encode('utf-8')
         c.send(sendDataEncoded)
         #c.close()
     s.shutdown(socket.SHUT_RDWR)
@@ -47,5 +48,11 @@ if __name__ == '__main__':
    
     ipHost = "127.0.0.1"
     portHost = 5001
+    sessionID = input("Enter session ID: ")
+    imgPath = "../Sessions/" + sessionID + "/"
+    if os.path.exists(imgPath + "iPhone/"):
+        Main(ipHost, portHost, imgPath  + "iPhone/")
+    else:
+        print("Directory with session ID doesn't exist!")
     Main(ipHost, portHost)
 

@@ -8,6 +8,7 @@ Created on Mon May  7 12:38:50 2018
 
 import numpy as np
 import cv2
+import os
   
 def getCameraExtrinsic(images, mtx, dist):
     criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
