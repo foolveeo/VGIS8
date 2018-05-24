@@ -171,10 +171,16 @@ def ZEDServerSendDataReceiveCheckerBoard(folderZED, folderARKit, ip, port, sendT
     #decode the array into an image
     img = cv2.imdecode(x, 1)
     
-    cv2.imwrite(folderZED + 'ZED/checkerBoard.png', img)
+    cv2.imwrite(folderZED + 'checkerBoard.png', img)
+#    if sendTCP:
+#        sendDataEncoded = tcpString.encode('utf-8')
+#        c.send(sendDataEncoded)
+#        
+    print("shut down")
+    s.close()
     
-    image_ZED = [folderZED + "ZED/checkerBoard.png"]
-    image_iPhone = [folderZED + "iPhone/checkerBoard.png"]
+    image_ZED = [folderZED + "checkerBoard.png"]
+    image_iPhone = [folderARKit + "checkerBoard.png"]
 
     # get extrinsics iPhone and  ZED
     rvecs_ZED, tvecs_ZED = getCameraExtrinsic(image_ZED, cameraMatrix_ZED, distCoeff_ZED)
@@ -214,11 +220,7 @@ def ZEDServerSendDataReceiveCheckerBoard(folderZED, folderARKit, ip, port, sendT
     fileTxt.write(tcpString)
     fileTxt.close()
     
-    if sendTCP:
-        sendDataEncoded = tcpString.encode('utf-8')
-        c.send(sendDataEncoded)
-        
-    s.close()
+    
 
 def ARKitCheckerBoardReceive(folderCheckerBoarARKit, ip, port):
     
@@ -228,7 +230,7 @@ def ARKitCheckerBoardReceive(folderCheckerBoarARKit, ip, port):
     print("listening")
     c, addr = s.accept()
     print ("Connection from: " + str(addr))
-    i = 9999999
+    
     while 1:
         receivedData = c.recv(16777216)
         x = np.frombuffer(receivedData, dtype='uint8')
@@ -295,6 +297,7 @@ else:
     colorPath = imagesFolder + "color/"
     depthPath = imagesFolder + "depth/"
     normalPath = imagesFolder + "normals/"
+    shadowPath = imagesFolder + "shadows/"
     sunDirPath = sessionPath + "sunDirection/"
     
     
@@ -303,6 +306,7 @@ else:
     os.makedirs(imagesFolder)
     os.makedirs(meshFolder)
     os.makedirs(sunDirPath)
+    os.makedirs(shadowPath)
     os.makedirs(colorPath)
     os.makedirs(depthPath)
     os.makedirs(normalPath)
@@ -310,7 +314,7 @@ else:
     
     ARKitDataReceive(iPhoneFolder, "172.20.10.2", 5004)
     ARKitCheckerBoardReceive(iPhoneFolder, "172.20.10.2", 5005)
-    ZEDServerSendDataReceiveCheckerBoard(zedFolder, iPhoneFolder, "127.0.0.1", 5001, 1)
+    ZEDServerSendDataReceiveCheckerBoard(zedFolder, iPhoneFolder, "127.0.0.1", 5001, 0)
     
     
     
